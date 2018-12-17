@@ -1,0 +1,1 @@
+{{-- Leave it empty. Include it in view as partial where Laravel js variables should be injected --}}

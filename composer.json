@@ -1,0 +1,6 @@
+{
+  "require": {
+    "rollbar/rollbar-laravel": "^4.0",
+    "laracasts/utilities": "^3.0",
+  }
+}
