@@ -26,9 +26,11 @@ class BulkQueryHelper
      *     ['id' => 1, 'name' => 'John'],
      *     ['id' => 2, 'name' => 'Mike'],
      * ];
-     *
+     * 
+     * $updateColumns = ['name','id'] update name and id based on their insert value
+     * $updateColumns = ['name'=>'sd','id'] update name to 'sq' but id from insert value
      * @param array $data is an array of array.
-     * @param array $updateColumns NULL or [] means update all columns
+     * @param array $updateColumns NULL means update all columns based on insert values
      *
      * @return bool
      */
@@ -43,7 +45,16 @@ class BulkQueryHelper
         }
         $sql = $this->buildInsertOnDuplicateSql($data, $updateColumns);
         $data = $this->inLineArray($data);
-        return DB::insert(DB::raw($sql), $data);
+        $additionalDataToBind = [];
+        if($updateColumns!==null) {
+            foreach ($updateColumns as $key => $value) {
+                if(!is_numeric($key) && !($value instanceof Expression)) {
+                    $additionalDataToBind[] = $value;
+                }
+            }
+        }
+        
+        return DB::insert(DB::raw($sql), array_merge($data,$additionalDataToBind));
     }
 
     /**
@@ -176,12 +187,9 @@ class BulkQueryHelper
             } else {
                 $v = $value;
                 if(!($v instanceof Expression)){
-                    if($v === null)
-                        $v = 'NULL';
-                    else
-                        $v = "'$v'";
+                    $v = '?';
                 }
-                $out[] = sprintf('%s = %s', $key, $v);
+                $out[] = sprintf('`%s` = %s', $key, $v);
             }
         }
         return implode(', ', $out);
