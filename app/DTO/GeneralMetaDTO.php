@@ -16,6 +16,18 @@ class GeneralMetaDTO implements \JsonSerializable {
     {
         return Helper::getKeyValue($this->setting,$name);
     }
+	
+	/**
+	* Required for empty() method to work correctly
+	*/
+	public function __isset($key)
+    {
+        if (isset($this->setting[$key])) {
+            return (false === empty($this->setting[$key]));
+        } else {
+            return null;
+        }
+    }
     
     public function __set($name, $value)
     {
