@@ -1,7 +1,17 @@
 1. Require "user.login" route. Can be changed within middleware if not present to something appropiate
 2. For frontend rollbar, use jumpstart/frontend rollbar implementation
 
+# Important
+1. Need to register middleware for JsVars in Kernel.php if needed to use as route middleware.
 
+## Trigger Module
+1. Used in Digital Receptionist
+
+## Export Module
+1. Used in Digital Receptionist
+
+## Notification Module
+1. Used in Digital Receptionist
 
 ## Resonable Role Based resource schema suggestion
 1. User

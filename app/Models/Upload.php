@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Traits\ModelTrait;
 use App\Storage\FileHandle;
 use App\Storage\CrossFileHandle;
+use App\Storage\FileHandleFactory;
 use Illuminate\Database\Eloquent\Model;
 
 class Upload extends Model
@@ -20,15 +21,17 @@ class Upload extends Model
     /**
      * @var CrossFileHandle
      */
-    protected $fileHandleProvider;
-    protected $pdffileHandleProvider;
+    protected $fileHandle;
 
-    public function getFileHandleProvider() {
-        if(!$this->fileHandleProvider) {
-            $this->fileHandleProvider = new CrossFileHandle(FileHandle::PROVIDER_DEFAULT, $this->rel_path, false);
+    /**
+     * @return FileHandle
+     */
+    public function getFileHandle() {
+        if(!$this->fileHandle) {
+            $this->fileHandle = (new FileHandleFactory())->forExisting($this->rel_path);
         }
 
-        return $this->fileHandleProvider;
+        return $this->fileHandle;
     }
 
     /**
@@ -71,10 +74,6 @@ class Upload extends Model
         $this->updateMeta(Upload::META_ORIGINAL_NAME,$value);
     }
 
-    public function setPdfRelPathAttribute($value){
-        $this->updateMeta(Upload::META_PDF_REL_PATH,$value);
-    }
-
     public function getMetadataDecodedAttribute(){
         if(empty($this->decodedMeta)){
             $this->decodedMeta = isset($this->metadata) ? json_decode($this->metadata,true) : null;
@@ -88,7 +87,7 @@ class Upload extends Model
     }
 
     public function getFullUrlAttribute(){
-        return (new FileHandle(FileHandle::PROVIDER_PUBLIC,$this->rel_path))->getFullUrl();
+        return $this->getFileHandle()->getFullUrl();
     }
 
     public $timestamps = false;
