@@ -13,7 +13,7 @@ class HelperServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        foreach (glob(app()->path('Helpers/*.php')) as $filename){
+        foreach (glob(app()->path('GlobalHelpers/*.php')) as $filename){
             require_once($filename);
         }
     }
