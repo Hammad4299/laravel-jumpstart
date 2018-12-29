@@ -1,6 +1,9 @@
 {
   "require": {
-    "rollbar/rollbar-laravel": "^4.0",
     "laracasts/utilities": "^3.0",
+    "mikehaertl/phpwkhtmltopdf": "^2.3",
+    "phpoffice/phpspreadsheet": "^1.5",
+    "rollbar/rollbar-laravel": "^4.0",
+    "tecnickcom/tcpdf": "^6.2"
   }
 }
