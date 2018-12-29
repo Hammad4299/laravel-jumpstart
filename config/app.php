@@ -5,4 +5,4 @@ return [
 		App\Providers\HelperServiceProvider::class,
 		Laracasts\Utilities\JavaScript\JavaScriptServiceProvider::class
 	]
-]
+];

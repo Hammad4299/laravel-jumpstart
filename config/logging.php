@@ -13,7 +13,7 @@ return [
 				'handler' => \Rollbar\Laravel\MonologHandler::class,
 				'access_token' => env('ROLLBAR_TOKEN'),
 				'token' => env('ROLLBAR_TOKEN'),	//needed due to https://github.com/rollbar/rollbar-php-laravel/issues/64
-				'level' => 'error',
+				'level' => env('ROLLBAR_LEVEL'),
 		]
 	]
 ];
