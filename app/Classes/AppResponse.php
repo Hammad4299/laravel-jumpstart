@@ -2,7 +2,6 @@
 
 namespace App\Classes;
 
-use App\Errors\IError;
 use Illuminate\Support\MessageBag;
 use Illuminate\Validation\Validator;
 
@@ -107,9 +106,6 @@ class AppResponse implements \JsonSerializable
         $out['data'] = $this->data;
         $out['status'] = $this->getStatus();
         $out['statusCode'] = $this->getStatusCode();
-        $out['reload'] = $this->reload;
-        $out['redirectUrl'] = $this->redirectUrl;
-        $out['message'] = $this->message;
         $out['errors'] = $this->errors == null || count($this->errors)==0 ? null : $this->errors;
         return $out;
     }
