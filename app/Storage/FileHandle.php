@@ -31,6 +31,16 @@ class FileHandle
             $this->delete();
     }
 
+    /**
+     * useful for relative url based on selected storage driver/provider. e.g. to send download via nginx ACCEL header
+     * @return string
+     */
+    public function getInternalRedirectUrl() {
+        $conf = config('filesystems.disks.'.$this->provider);
+        $base = Helper::getKeyValue($conf,'internal_redirect_url_base','/storage/');
+        return $base.$this->getRelPath();
+    }
+
     public function __construct($provider, $relPath, $cleanup = false) {
         $this->provider = $provider;
         $this->client = self::getFileSystem($provider);
@@ -43,6 +53,13 @@ class FileHandle
             return Storage::disk();
         } else {
             return Storage::disk($provider);
+        }
+    }
+
+    public function createDirectories() {
+        $dir = pathinfo($this->getAbsolutePath(),PATHINFO_DIRNAME);
+        if(!file_exists($dir)) {
+            mkdir($dir);
         }
     }
 

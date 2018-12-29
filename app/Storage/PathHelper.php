@@ -3,12 +3,8 @@
 namespace App\Storage;
 
 class PathHelper {
-    const FOLDER_COMPILED = 'compiled';
     const FOLDER_UPLOADS = 'uploads';
-    const PDF_PAGES = 'pdf_pages';
-    const FOLDER_PROJECT_MAIL_PARSE = 'project_mail_temp';
-    const FOLDER_SIGNING = 'signing';
-
+    
     public static function getPath($base, $fileName) {
         if(!empty($base)) {
             if($base[strlen($base)-1]!=='/')

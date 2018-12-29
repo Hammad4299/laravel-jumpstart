@@ -3,10 +3,9 @@
 namespace App\DTO;
 
 use App\Classes\Helper;
-use App\Models\KioskThemeSetting;
 use Illuminate\Support\Collection;
 
-class GeneralMetaDTO implements \JsonSerializable {
+class JSONMeta implements \JsonSerializable {
     /**
      * @var array
      */
@@ -15,18 +14,6 @@ class GeneralMetaDTO implements \JsonSerializable {
     public function &__get($name)
     {
         return Helper::getKeyValue($this->setting,$name);
-    }
-	
-	/**
-	* Required for empty() method to work correctly
-	*/
-	public function __isset($key)
-    {
-        if (isset($this->setting[$key])) {
-            return (false === empty($this->setting[$key]));
-        } else {
-            return null;
-        }
     }
     
     public function __set($name, $value)
@@ -51,7 +38,7 @@ class GeneralMetaDTO implements \JsonSerializable {
 
     /**
      * @param string|array $json
-     * @return GeneralMetaDTO
+     * @return JSONMeta
      */
     public function initFromJson($json) {
         $json = $this->toDecoded($json);
