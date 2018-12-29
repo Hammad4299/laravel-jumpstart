@@ -24,6 +24,8 @@ class JsRouteVariableRegistrarMiddleware
             ],
             'csrftoken'=>csrf_token(),
             'siteConfig' => [
+                'rollbarPublicDomain'=>config('services.rollbar.public_domain'),
+                'appname' => config('app.name'),
 				'code_version'=>config('services.rollbar.code_version'),
                 'rollbarToken' => config('services.rollbar.client_token'),
                 'environmment' => config('app.env'),
