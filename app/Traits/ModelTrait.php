@@ -6,10 +6,11 @@
  * Time: 4:07 PM
  */
 
-namespace App\Models;
+namespace App\Traits;
 
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+use App\Classes\Helper;
 
 trait ModelTrait
 {
@@ -22,6 +23,15 @@ trait ModelTrait
         return $q;
     }
 
+    public function scopeNotIn($q, $colum, $val) {
+        if(is_array($val) || $val instanceOf Collection) {
+            $q->whereNotIn($colum,$val);
+        } else {
+            $q->where($colum, '!=', $val);
+        }
+        return $q;
+    }
+
     public function isRelationLoaded($name){
         return isset($this->relations[$name]);
     }
@@ -30,9 +40,14 @@ trait ModelTrait
     {
         $d = $query;
 
-        if(isset($options['order'])){
-            foreach ($options['order'] as $order){
-                $d = $d->orderBy($order[0],$order[1]);
+        if(isset($options['order'])) {
+            foreach ($options['order'] as $order) {
+                $order = Helper::toDecoded($order);
+                $col = $order['col'];
+                $dir = $order['dir'];
+                if($dir === 'asc' || $dir === 'desc') {
+                    $d = $d->orderBy($col,$dir);
+                }
             }
         }
 

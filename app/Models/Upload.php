@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use App\Storage\CrossFileHandle;
+use App\Traits\ModelTrait;
 use App\Storage\FileHandle;
+use App\Storage\CrossFileHandle;
 use Illuminate\Database\Eloquent\Model;
 
 class Upload extends Model

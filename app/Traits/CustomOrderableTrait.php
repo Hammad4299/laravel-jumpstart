@@ -1,23 +1,11 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: talha
- * Date: 12/17/2016
- * Time: 4:07 PM
- */
-
-namespace App\Models;
+namespace App\Traits;
 
 use App\Classes\AppResponse;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\DB;
 
-/**
- * Can apply on model accessor (service)
- * Trait CustomOrderableTrait
- * @package App\Models
- */
 trait CustomOrderableTrait
 {
     protected function getNewOrder($data) {
