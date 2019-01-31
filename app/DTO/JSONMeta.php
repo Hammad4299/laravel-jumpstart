@@ -11,6 +11,13 @@ class JSONMeta implements \JsonSerializable {
      */
     public $setting;
 
+    public function __construct($data = null, $init = false)
+    {
+        if($init) {
+            $this->initFromJson($data);
+        }
+    }
+
     public function &__get($name)
     {
         return Helper::getKeyValue($this->setting,$name);
@@ -21,13 +28,6 @@ class JSONMeta implements \JsonSerializable {
         $this->setting[$name] = $value;
     }
 
-    /**
-     * @return array
-     */
-    protected function defaults($json) {
-        return [];
-    }
-
     protected function toDecoded($jsonOrArr) {
         if(is_string($jsonOrArr)) {
             return json_decode($jsonOrArr,true);
@@ -35,18 +35,34 @@ class JSONMeta implements \JsonSerializable {
 
         return $jsonOrArr;
     }
+	
+	function __isset($name)
+    {
+        return isset($this->setting[$name]);
+    }
+
+    /**
+     * @return array
+     */
+    protected function keysRequiringProcessing($json) {
+        return [];
+    }
 
     /**
      * @param string|array $json
-     * @return JSONMeta
+     * @return void
      */
     public function initFromJson($json) {
         $json = $this->toDecoded($json);
         $this->setting = $this->toDecoded($json);
-        $defaults = $this->defaults($json);
-        foreach ($defaults as $key => $value) {
-            $this->setting[$key] = Helper::getKeyValue($this->setting,$key,$defaults[$key]);
+        $keysRequiringProcessing = $this->keysRequiringProcessing($json);
+        foreach ($keysRequiringProcessing as $key => $suggestedDefault) {
+            $this->setting[$key] = $this->getValueFor($key, $suggestedDefault);
         }
+    }
+
+    protected function getValueFor($key, $suggestedDefault) {
+        return Helper::getKeyValue($this->setting,$key,$suggestedDefault);
     }
 
     public function jsonSerialize()

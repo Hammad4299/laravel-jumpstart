@@ -111,7 +111,7 @@ class UploadRepository extends BaseRepository
 
         if(!empty($files)) {
             foreach ($files as $file) {
-                $extension = $file->extension();
+                $extension = !empty($file->extension()) ? $file->extension() : $file->getClientOriginalExtension();
                 $content = file_get_contents($file->path());
                 $originalName = $file->getClientOriginalName();
                 $r = $this->storeFile($extension,$originalName,$content,$user,$relPath);

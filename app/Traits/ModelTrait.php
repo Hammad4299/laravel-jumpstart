@@ -57,14 +57,21 @@ trait ModelTrait
             $alias = 'page';
             if(isset($options['page_param']))
                 $alias = $options['page_param'];
-
-            $d = $query->paginate($options['paginate'],['*'],$alias);
+            
+            $page = null;
+            if(isset($options['page']))
+                $page = $options['page'];
+                
+            $d = $query->paginate($options['paginate'],['*'],$alias, $page);
         } else if (isset($options['simplepaginate'])) {
             $alias = 'page';
             if(isset($options['page_param']))
                 $alias = $options['page_param'];
 
-            $d = $query->simplepaginate($options['simplepaginate'],['*'],$alias);
+            $page = null;
+            if(isset($options['page']))
+                $page = $options['page'];
+            $d = $query->simplepaginate($options['simplepaginate'],['*'],$alias, $page);
         } else {
             $d = $query->get();
         }

@@ -25,13 +25,6 @@ class FileDTO extends JSONMeta {
         $this->contract = $contract;
     }
 
-    function defaults($json)
-    {
-        return array_merge(parent::defaults($json),[
-            'upload_rel'=>null
-        ]);
-    }
-
     public function initFromJson($json) {
         parent::initFromJson($json);
         $this->setting = [
@@ -54,7 +47,11 @@ class FileDTO extends JSONMeta {
     {
         $upload_rel = parent::__get('upload_rel');
         if($name === 'full_url' && !empty($upload_rel)) {
-            $r = $this->getFileHandle()->getFullUrl();
+            if(str_contains($upload_rel,'http')) {
+                $r = $upload_rel;
+            } else {
+                $r = $this->getFileHandle()->getFullUrl();
+            }
             return $r;
         }
         return parent::__get($name);
