@@ -2,6 +2,9 @@
 
 namespace App\Storage;
 
+use App\Classes\Helper;
+use Illuminate\Filesystem\FilesystemAdapter;
+
 class PathHelper {
     const FOLDER_UPLOADS = 'uploads';
     
@@ -39,5 +42,10 @@ class PathHelper {
             $extension .= $defaultExtension;
         $fileName = uniqid().$extension;
         return self::getPath($base,$fileName);
+    }
+
+    public static function asAbsolutePath(FilesystemAdapter $filesystem, $relPath) {
+        $storagePath  = $filesystem->getDriver()->getAdapter()->getPathPrefix();
+        return Helper::fixUri($storagePath."/".$relPath);
     }
 }

@@ -3,17 +3,16 @@
 namespace App\Storage;
 
 use App\Classes\Helper;
-use Illuminate\Support\Facades\Storage;
-use League\Flysystem\Filesystem;
 
-/**
- * Only supports Grant Auth
- * Class DocuSign
- * @package App\Classes
- */
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Filesystem\FilesystemAdapter;
+use Symfony\Component\HttpFoundation\File\File;
+
+
 class FileHandle
 {
-    const PROVIDER_DEFAULT = 'def';
+    const PROVIDER_DEFAULT = 'doesntmatter';
     const PROVIDER_PUBLIC = 'public';
     const PROVIDER_TEMP = 'temp';
     protected $provider;
@@ -21,9 +20,28 @@ class FileHandle
     protected $toClean;
 
     /**
-     * @var Filesystem
+     * @var FilesystemAdapter
      */
     protected $client;
+
+    public function __construct($provider, $relPath, $cleanup = false) {
+        /**
+         * FilesystemAdapter
+         */
+        $this->provider = $provider;
+        $this->client = self::getFileSystem($provider);
+        $this->relPath = $relPath;
+        $this->toClean = $cleanup;
+    }
+
+    /**
+     * @return void
+     */
+    public function closeResource($resource) {
+        if(is_resource($resource)) {
+            fclose($resource);
+        }
+    }
 
     public function __destruct()
     {
@@ -41,13 +59,6 @@ class FileHandle
         return $base.$this->getRelPath();
     }
 
-    public function __construct($provider, $relPath, $cleanup = false) {
-        $this->provider = $provider;
-        $this->client = self::getFileSystem($provider);
-        $this->relPath = $relPath;
-        $this->toClean = $cleanup;
-    }
-
     public static function getFileSystem($provider) {
         if($provider == self::PROVIDER_DEFAULT){
             return Storage::disk();
@@ -63,54 +74,110 @@ class FileHandle
         }
     }
 
+    /**
+     * @return string
+     */
     public function getExtension(){
         $info = pathinfo($this->relPath);
         return Helper::getKeyValue($info,'extension');
     }
 
+    /**
+     * @return string
+     */
     public function getFullUrl(){
         return $this->client->url($this->relPath);
     }
 
+    /**
+     * @return string
+     */
     public function getRelPath(){
         return $this->relPath;
     }
 
+    /**
+     * @param string $newRel
+     * @return FileHandle
+     */
     public function copy($newRel) {
-        $this->client->copy($this->relPath,$newRel);
-        return new FileHandle($this->provider,$newRel);
+        $this->client->copy($this->relPath, $newRel);
+        return new FileHandle($this->provider, $newRel);
     }
 
+    /**
+     * @param string $newRel
+     * @return FileHandle
+     */
     public function move($newRel) {
-        $this->client->move($this->relPath,$newRel);
-        return new FileHandle($this->provider,$newRel);
+        $this->client->move($this->relPath, $newRel);
+        return new FileHandle($this->provider, $newRel);
     }
 
+    /**
+     * @return FilesystemAdapter
+     */
     public function getClient() {
         return $this->client;
     }
 
-    public static function asAbsolutePath($filesystem, $relPath) {
-        $storagePath  = $filesystem->getDriver()->getAdapter()->getPathPrefix();
-        return Helper::fixUri($storagePath."/".$relPath);
-    }
-
+    /**
+     * @return bool
+     */
     public function exists() {
         return $this->client->exists($this->relPath);
     }
 
+    /**
+     * @return string
+     */
     public function getAbsolutePath() {
-        return self::asAbsolutePath($this->client,$this->relPath);
+        return PathHelper::asAbsolutePath($this->client,$this->relPath);
     }
 
-    public function saveContent($content) {
-        return $this->client->put($this->relPath, $content);
+    public function getDirectoryPath() {
+        return pathinfo($this->relPath, PATHINFO_DIRNAME);
     }
 
-    public function getContent() {
+    public function getFilenameWithExtension() {
+        return pathinfo($this->relPath, PATHINFO_BASENAME);
+    }
+
+    /**
+     * Warning!!! See this function and comments related to relPath in case $content is File|UploadedFile
+     * @param string|resource|File|UploadedFile $content
+     * @return bool|string
+     */
+    public function put($content) {
+        $r = false;
+        if($content instanceof File || $content instanceof UploadedFile) {    //FilesystemAdapter uses putFile() to store this file, that randomly generates filename. So adjust relPath accordingly
+            $r = $this->client->put($this->getDirectoryPath(), $content);
+            if(is_string($r)) {
+                $this->relPath = $r;
+            }
+        } else {
+            $r = $this->client->put($this->relPath, $content);
+        }
+        return $r;
+    }
+
+    /**
+     * @return resource|false
+     */
+    public function readStream() {
+        return $this->client->getDriver()->readStream($this->relPath);
+    }
+
+    /**
+     * @return string
+     */
+    public function get() {
         return $this->client->get($this->relPath);
     }
 
+    /**
+     * @return bool
+     */
     public function delete() {
         $this->client->delete($this->relPath);
     }

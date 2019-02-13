@@ -11,6 +11,8 @@ use App\Classes\AppResponse;
 use App\Storage\FileHandleFactory;
 use App\Storage\FileHandleFactoryContract;
 use Illuminate\Contracts\Auth\Authenticatable;
+use Illuminate\Http\UploadedFile;
+use Symfony\Component\HttpFoundation\File\File;
 
 class UploadRepository extends BaseRepository
 {
@@ -69,7 +71,7 @@ class UploadRepository extends BaseRepository
     /**
      * @param $extension
      * @param $originalName
-     * @param $content
+     * @param string|resource|File|UploadedFile $content
      * @param $user
      * @param $relPath
      * @return AppResponse
@@ -79,14 +81,11 @@ class UploadRepository extends BaseRepository
         $handle = $this->handleFactory->forNew([
             FileHandleFactory::OPTION_EXTENSION=>$extension
         ]);
-
+        $handle->put($content);
         $resp = $this->create($originalName, $handle->getRelPath(), $user);
-        if($resp->getStatus()) {
-            /**
-             * @var Upload $m
-             */
-            $m = $resp->data;
-            $handle->saveContent($content);
+        
+        if(!$resp->getStatus()) {
+            $handle->delete();
         }
         return $resp;
     }
@@ -112,9 +111,8 @@ class UploadRepository extends BaseRepository
         if(!empty($files)) {
             foreach ($files as $file) {
                 $extension = !empty($file->extension()) ? $file->extension() : $file->getClientOriginalExtension();
-                $content = file_get_contents($file->path());
                 $originalName = $file->getClientOriginalName();
-                $r = $this->storeFile($extension,$originalName,$content,$user,$relPath);
+                $r = $this->storeFile($extension,$originalName,$file,$user,$relPath);
                 if($r->getStatus()) {
                     $mods[] = $r->data;
                 } else {

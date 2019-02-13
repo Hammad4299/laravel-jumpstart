@@ -10,7 +10,7 @@ class CrossFileHandle extends FileHandle
     public function __construct($sourceProvider, $relPath, $cleanup = false) {
         parent::__construct($sourceProvider,$relPath,$cleanup);
         $this->providers = [
-            $this->provider=>[
+            $sourceProvider=>[
                 $cleanup=>$this
             ]
         ];
@@ -37,7 +37,9 @@ class CrossFileHandle extends FileHandle
             }
 
             $fs = new CrossFileHandle($provider, $newPath, $cleanup);
-            $fs->saveContent($this->getContent());
+            $sourceStream = $this->readStream();
+            $fs->put($sourceStream);
+            $this->closeResource($sourceStream);
             $this->providers[$provider][$cleanup] = $fs;
         }
 
