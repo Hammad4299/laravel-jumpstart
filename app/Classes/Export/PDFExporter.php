@@ -55,7 +55,7 @@ class PDFExporter implements TableExporterContract {
     function save($absolutePath){
         $html = View::make('exports.visitor-checkin',['header'=>$this->header,'data'=>$this->data])->render();
         $handle = new FileHandle(FileHandle::PROVIDER_DEFAULT,'exports/'.uniqid('pdf_export_tmp').'.html',true);
-        $handle->saveContent($html);
+        $handle->put($html);
         $html = null;
         $pdf = new Pdf($handle->getAbsolutePath());
         

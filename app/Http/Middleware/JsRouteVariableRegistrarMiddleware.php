@@ -20,16 +20,16 @@ class JsRouteVariableRegistrarMiddleware
     {
         JavaScript::put([
             'routes' => [
-                'baseurl'=>config('app.ajax_base_url')
+                'baseurl'=>config('app.ajax_base_url', url('/'))
             ],
             'csrftoken'=>csrf_token(),
             'siteConfig' => [
-                'rollbarPublicDomain'=>config('services.rollbar.public_domain'),
+                'rollbarPublicDomain'=>config('services.rollbar.public_domain',getDomainWithPort(url('/'))),
                 'appname' => config('app.name'),
 				'code_version'=>config('services.rollbar.code_version'),
                 'rollbarToken' => config('services.rollbar.client_token'),
                 'environmment' => config('app.env'),
-                'baseUrl' => url('/'),
+                'staticContentBaseUrl' => config('app.static_content_base', url('/')),
             ]
         ]);
 

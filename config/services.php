@@ -7,7 +7,7 @@ return [
         'access_token' => env('ROLLBAR_TOKEN'),
         'public_domain' => env('PUBLIC_DOMAIN'),
         //'level' => env('ROLLBAR_LEVEL'),
-		'code_version'=>env('GIT_REVISION_HASH'),//custom
+		'code_version'=>env('GIT_REVISION_HASH',null),//custom
     ],
 
 ];

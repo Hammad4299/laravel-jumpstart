@@ -12,8 +12,10 @@ class BaseMailable extends Mailable
     //Email field equals 'email' from all places except in scenarios where $to is set directly as in following code without any setter
     use Queueable, SerializesModels;
 
-    public function send(MailerContract $mailer)
-    {
+     /**
+     * @return Mailable
+     */
+    protected function replaceDefaultReceipts() {
         $receipts = config('mail.defaultTo');
         $only = config('mail.onlyDefault');
 
@@ -23,6 +25,12 @@ class BaseMailable extends Mailable
             $this->to = $receipts;
         }
 
+        return $this;
+    }
+
+    public function send(MailerContract $mailer)
+    {
+        $this->replaceDefaultReceipts();
         parent::send($mailer);
     }
 }

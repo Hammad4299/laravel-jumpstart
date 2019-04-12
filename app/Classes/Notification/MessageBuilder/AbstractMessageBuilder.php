@@ -3,6 +3,9 @@
 namespace App\Classes\Notification\MessageBuilder;
 
 class AbstractMessageBuilder implements MessageBuilderContract {
+    /**
+     * @var array
+     */
     protected $preferredReplacements;
 
     protected function getReplacements() {
@@ -10,8 +13,11 @@ class AbstractMessageBuilder implements MessageBuilderContract {
     }
 
     public static function performReplacements($subject, $replacements) {
-        //TODO
-        return $subject;
+        $changed = $subject;
+        foreach ($replacements as $search=>$replacement) {
+            $changed = str_replace($search, $replacement, $changed);
+        }
+        return $changed;
     }
 
     protected function makeReplacements($subject) {

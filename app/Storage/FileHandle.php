@@ -70,7 +70,7 @@ class FileHandle
     public function createDirectories() {
         $dir = pathinfo($this->getAbsolutePath(),PATHINFO_DIRNAME);
         if(!file_exists($dir)) {
-            mkdir($dir);
+            mkdir($dir, 0777, true);
         }
     }
 

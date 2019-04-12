@@ -3,7 +3,6 @@
 namespace App\Classes\Notification;
 
 use App\Classes\AppResponse;
-use App\Models\ClientSetting;
 use App\Classes\Notification\Receipt\ReceiptContract;
 use App\Classes\Notification\Sender\EyeconicSmsSender;
 use App\Classes\Notification\Receipt\SMSReceiptContract;
@@ -20,24 +19,9 @@ class NotificationSender {
      * @var SMSMessageBuilderContract
      */
     protected $smsMessageBuilder;
-
-    /**
-     * @var Client
-     */
-    protected $client;
-    /**
-     * @var ClientSetting
-     */
-    protected $clientSetting;
     
-    /**
-     * @param Client $client
-     * @param ClientSetting $clientSetting
-     */
-    public function __construct($client, $clientSetting)
+    public function __construct()
     {
-        $this->client = $client;
-        $this->clientSetting = $clientSetting;
     }
 
     public function setSmsMessageBuilder($builder) {
