@@ -8,8 +8,7 @@ use App\Http\Requests\Sample\DeleteRequest;
 use App\Http\Requests\Sample\GetRequest;
 use App\Http\Requests\Sample\IndexRequest;
 use App\Http\Requests\Sample\UpdateRequest;
-use App\Repositories\UploadRepository;
-use Illuminate\Support\Facades\Auth;
+use App\Repositories\BaseRepository;
 
 class SampleCrudController extends Controller
 {
@@ -22,13 +21,13 @@ class SampleCrudController extends Controller
     }
 
     /**
-     * @var UploadRepository
+     * @var BaseRepository
      */
     protected $repo;
 
     public function __construct()
     {
-        $this->repo = new UploadRepository();
+        $this->repo = new BaseRepository();
     }
 
     public function index(IndexRequest $request)
@@ -57,7 +56,7 @@ class SampleCrudController extends Controller
     }
 
     /**
-     * @return UploadRepository
+     * @return BaseRepository
      */
     protected function getRepository() {
         return $this->repo;

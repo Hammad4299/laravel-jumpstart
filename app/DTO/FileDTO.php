@@ -4,11 +4,12 @@ namespace App\DTO;
 
 use App\Classes\Helper;
 use App\Storage\FileHandleFactoryContract;
-use App\Storage\FileHandleFactory;
 
 /**
  * @property string $full_url
  * @property string $upload_rel
+ * @property string $extension
+ * @property string $name
  */
 class FileDTO extends JSONMeta {
     /**

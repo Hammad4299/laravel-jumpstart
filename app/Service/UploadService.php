@@ -1,20 +1,16 @@
 <?php
 
-namespace App\Repositories;
+namespace App\Service;
 
-use Carbon\Carbon;
-use App\Models\Upload;
 use App\Classes\Helper;
-use App\Storage\FileHandle;
-use App\Storage\PathHelper;
 use App\Classes\AppResponse;
 use App\Storage\FileHandleFactory;
 use App\Storage\FileHandleFactoryContract;
-use Illuminate\Contracts\Auth\Authenticatable;
 use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\File\File;
+use App\DTO\FileDTO;
 
-class UploadRepository extends BaseRepository
+class UploadService
 {
     /**
      * @var FileHandleFactoryContract
@@ -32,87 +28,58 @@ class UploadRepository extends BaseRepository
         $this->handleFactory = $handleFactory;
     }
 
-    public function getModel() {
-        return Upload::class;
-    }
-
-    public function getModelQueryBuilder($purpose = null, $queryOptions = null) {
-        return Upload::query();
-    }
-
-    /**
-     *
-     * @param string|null $originalName
-     * @param string $relPath
-     * @param Authenticatable|null $user
-     * @return AppResponse
-     */
-    public function create($originalName, $relPath = null, $user = null) {
-        $info = pathinfo($relPath);
-        if(!isset(pathinfo($originalName)['extension'])){
-            $originalName = $originalName.'.'.$info['extension'];
-        }
-
-        $meta = [
-            Upload::META_ORIGINAL_NAME=>$originalName,
-            Upload::META_STORED_EXT=>$info['extension'],
-            Upload::META_STORED_NAME=>$info['basename'],
-            Upload::META_STORED_NAME_WITHOUT_EXT=>$info['filename']
-        ];
-
-        return parent::create([
-            'owner_id'=>Helper::defaultOnEmptyKey($user,'id'),
-            'rel_path'=>$relPath,
-            'uploaded_at'=>Carbon::now()->getTimestamp(),
-            'metadata'=>json_encode($meta)
-        ]);
-    }
-
     /**
      * @param $extension
      * @param $originalName
      * @param string|resource|File|UploadedFile $content
-     * @param $user
-     * @param $relPath
      * @return AppResponse
      */
-    protected function storeFile($extension, $originalName, $content, $user, $relPath){
+    protected function storeFile($extension, $originalName, $content) {
         $extension = strtolower($extension);
         $handle = $this->handleFactory->forNew([
             FileHandleFactory::OPTION_EXTENSION=>$extension
         ]);
         $handle->put($content);
-        $resp = $this->create($originalName, $handle->getRelPath(), $user);
-        
-        if(!$resp->getStatus()) {
-            $handle->delete();
-        }
+        $dto = new FileDTO();
+        $dto->name = $originalName;
+        $dto->extension = $extension;
+        $dto->upload_rel = $handle->getRelPath();
+        $dto->setContract($this->handleFactory);
+        $resp = new AppResponse(true, $dto);
         return $resp;
     }
 
-    public function bulkDelete($uploadIds) {
-        Upload::in('id',$uploadIds)->delete();
+    protected function deleteFiles($relPaths) {
+        if($this->handleFactory) {
+            foreach($relPaths as $path) {
+                if(!empty($path)) {
+                    $this->handleFactory->forExisting($path)->delete();
+                }
+            }
+        }
     }
+
+	public function bulkDelete($uploadRelPaths) {
+        if($this->handleFactory) {
+            $this->deleteFiles($uploadRelPaths);
+        }
+    }
+
 
     /**
      * @param [type] $files
-     * @param [type] $user
-     * @param string $relPath
      * @return AppResponse
      */
-    public function uploadFiles($files, $user, $relPath = 'uploads'){
+    public function uploadFiles($files){
         $resp = new AppResponse(true);
-        if(empty($relPath)){
-            $relPath = 'uploads';
-        }
 
         $mods = [];
-
         if(!empty($files)) {
-            foreach ($files as $file) {
+            $f = Helper::toCollection($files);
+            foreach ($f as $file) {
                 $extension = !empty($file->extension()) ? $file->extension() : $file->getClientOriginalExtension();
                 $originalName = $file->getClientOriginalName();
-                $r = $this->storeFile($extension,$originalName,$file,$user,$relPath);
+                $r = $this->storeFile($extension,$originalName,$file);
                 if($r->getStatus()) {
                     $mods[] = $r->data;
                 } else {
@@ -121,7 +88,11 @@ class UploadRepository extends BaseRepository
             }
 
             if(count($mods)>0){
-                $resp->data = $mods;
+                if(is_array($files)) {
+                    $resp->data = $mods;
+                } else {
+                    $resp->data = $mods[0];
+                }
             }
         }else{
             $resp->addError('file','Please select files to upload');
@@ -134,31 +105,28 @@ class UploadRepository extends BaseRepository
      * @param mixed $kind anything. This function can be modified to handle kind e.g. to use different FileHandleFactory for each kind
      * @param array $fileInfos (example 'file_infos'  = [{identifier:'XwdF3',anyotherdata:1,anyotherdata:2}])
      * @param array $files (example ['XwdF3'=>Laravel Standard Uploaded file])
-     * @param [type] $user
-     * @return AppResponse ($data = [identifier from $file_infoes => ['upload_rel'=>$rel_path,'rel_path'=>$rel_path]])
+     * @return AppResponse ($data = [identifier from $file_infoes => FileDTO])
      */
-    public function bulkUpload($kind, $fileInfos, $files, $user = null) {
+    public function bulkUpload($kind, $fileInfos, $files) {
         $resp = new AppResponse(true);
         $toRetData = [];
-        $kiosksMap = [];
 
         foreach ($fileInfos as $info) {
             $factory = new FileHandleFactory();
-
             $identifier = $info['identifier'];
             $file = Helper::getKeyValue($files,$identifier);
             if($file) {
-                $r = $this->uploadFiles([$file],$user);
+                $r = $this->uploadFiles($file);
                 $resp->mergeErrors($r->errors);
                 $rel_path = null;
+                $toRetData[$identifier] = null;
                 if($r->getStatus()) {
-                    $rel_path = $r->data[0];
+                    $fileDto = $r->data;
+                    $toRetData[$identifier] = $fileDto;
                 }
-                
-                $toRetData[$identifier] = $rel_path;
-                $toRetData[$identifier]['upload_rel'] = $toRetData[$identifier]['rel_path'];
             }
         }
+
         $resp->data = $toRetData;
         return $resp;
     }
@@ -172,11 +140,9 @@ class UploadRepository extends BaseRepository
 
     /**
      * @param [type] $files
-     * @param [type] $user
-     * @param string $relPath
      * @return AppResponse
      */
-    public function uploadFilesBase64($files, $user, $relPath = 'uploads'){
+    public function uploadFilesBase64($files){
         $resp = new AppResponse(true);
         if(empty($relPath)) {
             $relPath = 'uploads';
@@ -184,13 +150,14 @@ class UploadRepository extends BaseRepository
         $mods = [];
 
         if(!empty($files)){
-            foreach ($files as $file) {
+            $d = Helper::toCollection($files);
+            foreach ($d as $file) {
                 $file = json_decode($file,true);
                 $extension = "png";
                 $base64Url = $file['base64Url'];
                 $content = $this->pngFileContentFromBase64Url($base64Url);
                 $originalName = $file['name'];
-                $r = $this->storeFile($extension,$originalName,$content,$user,$relPath);
+                $r = $this->storeFile($extension,$originalName,$content);
                 if($r->getStatus()) {
                     $mods[] = $r->data;
                 } else {
@@ -199,7 +166,11 @@ class UploadRepository extends BaseRepository
             }
 
             if(count($mods)>0){
-                $resp->data = $mods;
+                if(is_array($files)) {
+                    $resp->data = $mods;
+                } else {
+                    $resp->data = $mods[0];
+                }
             }
         }else{
             $resp->addError('file','Please select files to upload');
