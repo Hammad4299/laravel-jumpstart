@@ -3,24 +3,24 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
-use App\Service\UploadService;
+use App\Repositories\StorageRepository;
 use App\Http\Middleware\RedirectIfNotAuthenticated;
 
 class UploadController extends Controller
 {
     /**
-     * @var UploadService
+     * @var StorageRepository
      */
-    protected $uploadService;
+    protected $StorageRepository;
 
     public function __construct(){
         $this->middleware(RedirectIfNotAuthenticated::class);
-        $this->uploadService = new UploadService();
+        $this->StorageRepository = new StorageRepository();
     }
 
     public function upload(Request $request){
         $file = $request->file('file');
-        $res = $this->uploadService->uploadFiles($file);
+        $res = $this->StorageRepository->uploadFiles($file);
         return response()->json($res);
     }
 
@@ -31,14 +31,14 @@ class UploadController extends Controller
     public function uploadBulk(Request $request)
     {
         $file_infos = json_decode($request->get('file_infos'),true);
-        $resp = $this->uploadService->bulkUpload($request->get('kind'), $file_infos, $request->allFiles());
+        $resp = $this->StorageRepository->bulkUpload($request->get('kind'), $file_infos, $request->allFiles());
         return response()->json($resp);
     }
 
     public function uploadBase64(Request $request){
         $path = $request->get('path');
         $data = $request->get('file');
-        $res = $this->uploadService->uploadFilesBase64($data);
+        $res = $this->StorageRepository->uploadFilesBase64($data);
         return response()->json($res);
     }
 }

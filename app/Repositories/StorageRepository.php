@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Service;
+namespace App\Repositories;
 
 use App\Classes\Helper;
 use App\Classes\AppResponse;
@@ -10,7 +10,7 @@ use Illuminate\Http\UploadedFile;
 use Symfony\Component\HttpFoundation\File\File;
 use App\DTO\FileDTO;
 
-class UploadService
+class StorageRepository
 {
     /**
      * @var FileHandleFactoryContract
